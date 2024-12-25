@@ -1,0 +1,15 @@
+name: 'Issue sync'
+description: 'Greet someone and record the time'
+inputs:
+  discord-token:
+    description: 'Token of Discord bot account.'
+    required: true
+  discord-channel-id:
+    description: 'ID of Discord channel to post to.'
+    required: true
+  project-id:
+    description: 'ID of project to listen to.'
+    required: false
+runs:
+  using: 'node20'
+  main: 'index.js'
