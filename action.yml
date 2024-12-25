@@ -1,15 +1,16 @@
-name: 'Issue sync'
-description: 'Greet someone and record the time'
+name: "Issue Sync"
+author: "Christian Toney"
+description: "Sync issues between GitHub and Discord."
 inputs:
   discord-token:
-    description: 'Token of Discord bot account.'
+    description: "Token of Discord bot account."
     required: true
   discord-channel-id:
-    description: 'ID of Discord channel to post to.'
+    description: "ID of Discord channel to post to."
     required: true
   project-id:
-    description: 'ID of project to listen to.'
+    description: "ID of project to listen to."
     required: false
 runs:
-  using: 'node20'
-  main: 'index.js'
+  using: "node20"
+  main: "index.js"
