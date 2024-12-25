@@ -1,0 +1,26 @@
+{
+  "name": "github-discord-sync",
+  "version": "1.0.0",
+  "description": "A GitHub action for syncronizing the status of GitHub issues with Discord threads.",
+  "homepage": "https://github.com/DaDragonDen/github-discord-sync#readme",
+  "bugs": {
+    "url": "https://github.com/DaDragonDen/github-discord-sync/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DaDragonDen/github-discord-sync.git"
+  },
+  "license": "GPL-3.0-only",
+  "author": "Christian Toney",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "oceanic": "^0.0.1",
+    "typescript": "^5.7.2"
+  }
+}
