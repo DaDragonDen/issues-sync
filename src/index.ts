@@ -6,7 +6,7 @@ try {
 
   // Get the issue title.
   const issuePayload = github.context.issue;
-  const githubAccessToken = core.getInput("GITHUB_TOKEN", {required: true}); 
+  const githubAccessToken = core.getInput("github-token", {required: true}); 
   const octokit = github.getOctokit(githubAccessToken);
   const { data: issue } = await octokit.rest.issues.get({
     issue_number: issuePayload.number,
