@@ -15,7 +15,7 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "compile": "tsc",
+    "compile": "tsc --build --clean && tsc --build && ncc build dist/index.js --license licenses.txt",
     "start": "node dist/index.js"
   },
   "dependencies": {
@@ -23,5 +23,8 @@
     "@actions/github": "^6.0.0",
     "oceanic": "^0.0.1",
     "typescript": "^5.7.2"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.3"
   }
 }
