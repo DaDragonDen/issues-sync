@@ -35409,7 +35409,7 @@ try {
             fieldName
         });
     }
-    console.log(_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.action);
+    console.log(JSON.stringify(_actions_github__WEBPACK_IMPORTED_MODULE_2__.context));
     switch (_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.action) {
         case "opened":
         case "edited": {
