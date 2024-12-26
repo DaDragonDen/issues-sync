@@ -33810,8 +33810,8 @@ __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependen
 /* harmony import */ var oceanic_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(9875);
 /* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(7484);
 /* harmony import */ var _actions_github__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(3228);
-/* harmony import */ var _octokit_auth_app__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(5434);
-/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(1897);
+/* harmony import */ var _octokit_auth_app__WEBPACK_IMPORTED_MODULE_3__ = __nccwpck_require__(5434);
+/* harmony import */ var _octokit_core__WEBPACK_IMPORTED_MODULE_4__ = __nccwpck_require__(1897);
 var __webpack_async_dependencies__ = __webpack_handle_async_dependencies__([oceanic_js__WEBPACK_IMPORTED_MODULE_0__]);
 oceanic_js__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ? (await __webpack_async_dependencies__)() : __webpack_async_dependencies__)[0];
 
@@ -33821,21 +33821,21 @@ oceanic_js__WEBPACK_IMPORTED_MODULE_0__ = (__webpack_async_dependencies__.then ?
 
 try {
     // Authenticate as an installation to get the app token.
-    // const baseAuth = createAppAuth({
-    //   appId: core.getInput("github-app-id", {required: true}),
-    //   privateKey: core.getInput("github-app-private-key", {required: true}),
-    //   clientId: core.getInput("github-app-client-id", {required: true}),
-    //   clientSecret: core.getInput("github-app-client-secret", {required: true})
-    // });
+    const createInstallationAuth = (0,_octokit_auth_app__WEBPACK_IMPORTED_MODULE_3__/* .createAppAuth */ .K)({
+        appId: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-id", { required: true }),
+        privateKey: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-private-key", { required: true }),
+        clientId: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-client-id", { required: true }),
+        clientSecret: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-client-secret", { required: true })
+    });
+    const installationAuth = await createInstallationAuth({
+        type: "installation",
+        installationId: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-installation-id", { required: true }) // Get the installation ID from the GitHub app settings.
+    });
     // Get the issue title.
     const issuePayload = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue;
-    const octokit = new _octokit_core__WEBPACK_IMPORTED_MODULE_3__.Octokit({
-        authStrategy: _octokit_auth_app__WEBPACK_IMPORTED_MODULE_4__/* .createAppAuth */ .K,
-        auth: {
-            type: "installation",
-            privateKey: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-private-key", { required: true }),
-            installationId: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-installation-id", { required: true }) // Get the installation ID from the GitHub app settings.
-        }
+    const octokit = new _octokit_core__WEBPACK_IMPORTED_MODULE_4__.Octokit({
+        authStrategy: _octokit_auth_app__WEBPACK_IMPORTED_MODULE_3__/* .createAppAuth */ .K,
+        auth: installationAuth
     });
     const { data: issue } = await octokit.request(`GET /repos/{owner}/{repo}/issues/{issue_number}`, {
         issue_number: issuePayload.number,

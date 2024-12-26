@@ -7,22 +7,23 @@ import { Octokit } from "@octokit/core";
 try {
 
   // Authenticate as an installation to get the app token.
-  // const baseAuth = createAppAuth({
-  //   appId: core.getInput("github-app-id", {required: true}),
-  //   privateKey: core.getInput("github-app-private-key", {required: true}),
-  //   clientId: core.getInput("github-app-client-id", {required: true}),
-  //   clientSecret: core.getInput("github-app-client-secret", {required: true})
-  // });
+  const createInstallationAuth = createAppAuth({
+    appId: core.getInput("github-app-id", {required: true}),
+    privateKey: core.getInput("github-app-private-key", {required: true}),
+    clientId: core.getInput("github-app-client-id", {required: true}),
+    clientSecret: core.getInput("github-app-client-secret", {required: true})
+  });
+
+  const installationAuth = await createInstallationAuth({
+    type: "installation",
+    installationId: core.getInput("github-app-installation-id", {required: true}) // Get the installation ID from the GitHub app settings.
+  });
 
   // Get the issue title.
   const issuePayload = github.context.issue;
   const octokit = new Octokit({
     authStrategy: createAppAuth,
-    auth: {
-      type: "installation",
-      privateKey: core.getInput("github-app-private-key", {required: true}),
-      installationId: core.getInput("github-app-installation-id", {required: true}) // Get the installation ID from the GitHub app settings.
-    }
+    auth: installationAuth
   })
   const { data: issue } = await octokit.request(`GET /repos/{owner}/{repo}/issues/{issue_number}`, {
     issue_number: issuePayload.number,
