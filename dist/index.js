@@ -35401,9 +35401,11 @@ try {
             projectV2(number: $projectID) {
               id
               fields {
-                id
-                name
-                databaseId
+                nodes {
+                  id
+                  name
+                  databaseId
+                }
               }
               items {
                 nodes {

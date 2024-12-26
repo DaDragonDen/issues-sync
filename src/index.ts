@@ -63,7 +63,9 @@ try {
           projectV2: {
             id: string;
             fields: {
-              databaseId: number;
+              nodes: {
+                databaseId: number;
+              }[]
             };
             items: {
               nodes: {
@@ -84,9 +86,11 @@ try {
             projectV2(number: $projectID) {
               id
               fields {
-                id
-                name
-                databaseId
+                nodes {
+                  id
+                  name
+                  databaseId
+                }
               }
               items {
                 nodes {
