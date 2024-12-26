@@ -96,7 +96,7 @@ try {
 
   }
 
-  console.log(github.context.action);
+  console.log(JSON.stringify(github.context));
   switch (github.context.action) {
 
     case "opened":
