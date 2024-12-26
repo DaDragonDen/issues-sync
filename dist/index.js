@@ -33871,7 +33871,7 @@ try {
     `);
         const itemID = response.data.repository.projectV2.items.nodes.id;
         // Set the thread ID on the issue.
-        const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("field-id");
+        const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("field-id", { required: true });
         await octokit.graphql(`
       gh api graphql -f query='
         mutation {

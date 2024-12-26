@@ -14,6 +14,9 @@ inputs:
   project-id:
     description: "ID of project to listen to."
     required: false
+  field-id:
+    description: "ID of field to read and adjust. Required if project-id is provided."
+    required: false
 runs:
   using: "node20"
   main: "dist/index.js"
