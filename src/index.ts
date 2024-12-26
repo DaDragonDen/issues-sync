@@ -74,7 +74,10 @@ try {
           issue(number: $issueNumber) {
             projectV2(number: $projectID) {
               items {
-                nodes
+                nodes {
+                  id
+                  content
+                }
               }
             }
           }
