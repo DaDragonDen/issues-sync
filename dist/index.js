@@ -35456,9 +35456,12 @@ try {
                     throw new Error("Channel ID not provided in link.");
                 if (!messageID)
                     throw new Error("Thread ID not provided in link.");
+                // Edit the thread name if necessary.
+                await client.rest.channels.edit(channelID, {
+                    name: issue.title
+                });
                 // Edit the existing message.
-                const message = await client.rest.channels.getMessage(channelID, messageID);
-                await message.edit(discordMessage);
+                await client.rest.channels.editMessage(channelID, messageID, discordMessage);
             }
             else {
                 // Create a discussion link since it doesn't exist.
@@ -35497,7 +35500,7 @@ try {
                 }  
               }
             }
-          `, { projectNodeID, itemID, fieldID, threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${discordChannelID}/${threadMessageID}` });
+          `, { projectNodeID, itemID, fieldID, threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}` });
                 }
                 console.log("Successfully created issue.");
                 break;

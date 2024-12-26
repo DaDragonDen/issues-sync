@@ -146,9 +146,13 @@ try {
         if (!channelID) throw new Error("Channel ID not provided in link.");
         if (!messageID) throw new Error("Thread ID not provided in link.");
 
+        // Edit the thread name if necessary.
+        await client.rest.channels.edit(channelID, {
+          name: issue.title
+        });
+
         // Edit the existing message.
-        const message = await client.rest.channels.getMessage(channelID, messageID);
-        await message.edit(discordMessage);
+        await client.rest.channels.editMessage(channelID, messageID, discordMessage);
 
       } else {
 
@@ -193,7 +197,7 @@ try {
                 }  
               }
             }
-          `, {projectNodeID, itemID, fieldID, threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${discordChannelID}/${threadMessageID}`});
+          `, {projectNodeID, itemID, fieldID, threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`});
 
         }
 
