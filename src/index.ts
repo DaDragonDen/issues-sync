@@ -101,7 +101,7 @@ try {
     console.log(JSON.stringify(response));
     const targetNodeID = response.repository.issue.id;
     const nodes = response.repository.issue.projectV2.items.nodes;
-    const itemID = nodes.find((node) => node.id === targetNodeID)!.id;
+    const itemID = nodes.find((node) => node.content.id === targetNodeID)!.id;
 
     // Set the thread ID on the issue.
     const fieldID = core.getInput("field-id", {required: true});
