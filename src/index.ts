@@ -1,30 +1,21 @@
 import { Client } from "oceanic.js";
 import core from "@actions/core";
 import github from "@actions/github";
-import { createAppAuth } from "@octokit/auth-app";
-import { Octokit } from "@octokit/core";
+import { App } from "octokit";
 
 try {
 
   // Authenticate as an installation to get the app token.
-  const createInstallationAuth = createAppAuth({
+  const app = new App({
     appId: core.getInput("github-app-id", {required: true}),
-    privateKey: core.getInput("github-app-private-key", {required: true}),
-    clientId: core.getInput("github-app-client-id", {required: true}),
-    clientSecret: core.getInput("github-app-client-secret", {required: true})
+    privateKey: core.getInput("github-app-private-key", {required: true})
   });
-
-  const installationAuth = await createInstallationAuth({
-    type: "installation",
-    installationId: core.getInput("github-app-installation-id", {required: true}) // Get the installation ID from the GitHub app settings.
-  });
+  
+  const installationID = parseInt(core.getInput("github-app-installation-id", {required: true}), 10);
+  const octokit = await app.getInstallationOctokit(installationID); // Get the installation ID from the GitHub app settings.
 
   // Get the issue title.
   const issuePayload = github.context.issue;
-  const octokit = new Octokit({
-    authStrategy: createAppAuth,
-    auth: installationAuth
-  })
   const { data: issue } = await octokit.request(`GET /repos/{owner}/{repo}/issues/{issue_number}`, {
     issue_number: issuePayload.number,
     owner: issuePayload.owner,
