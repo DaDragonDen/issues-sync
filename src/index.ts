@@ -202,6 +202,7 @@ try {
         console.log("Creating Discord thread...");
 
         const issueType = projectData?.issueType;
+        console.log(projectData)
         const appliedTags = [];
         if (issueType) {
 
@@ -209,6 +210,7 @@ try {
           if (channel?.type === ChannelTypes.GUILD_FORUM) {
 
             const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
+            console.log(channel.availableTags)
             if (tag) appliedTags.push(tag.id);
 
           }

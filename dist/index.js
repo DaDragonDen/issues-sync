@@ -35497,11 +35497,13 @@ try {
                 // Create a thread referencing the GitHub issue.
                 console.log("Creating Discord thread...");
                 const issueType = projectData?.issueType;
+                console.log(projectData);
                 const appliedTags = [];
                 if (issueType) {
                     const channel = await client.rest.channels.get(discordChannelID);
                     if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {
                         const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
+                        console.log(channel.availableTags);
                         if (tag)
                             appliedTags.push(tag.id);
                     }
