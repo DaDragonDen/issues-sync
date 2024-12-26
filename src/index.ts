@@ -96,8 +96,7 @@ try {
 
   }
 
-  console.log(JSON.stringify(github.context));
-  switch (github.context.action) {
+  switch (github.context.payload.action) {
 
     case "opened":
     case "edited": {
