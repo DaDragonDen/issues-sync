@@ -149,6 +149,7 @@ try {
           }
         ]
       };
+      console.log(nodes);
 
       if (discussionLink) {
 
