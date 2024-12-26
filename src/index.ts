@@ -229,7 +229,6 @@ try {
         // Create a thread referencing the GitHub issue.
         console.log("Creating Discord thread...");
 
-        const issueType = projectData?.issueType;
         const appliedTags = await getAppliedTags(discordChannelID);
 
         const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
