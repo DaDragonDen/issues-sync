@@ -177,14 +177,14 @@ try {
         ]
       };
 
-      async function getAppliedTags() {
+      async function getAppliedTags(channelID: string) {
 
         const appliedTags = [];
 
         const { issueType } = projectData;
         if (issueType) {
 
-          const channel = await client.rest.channels.get(discordChannelID);
+          const channel = await client.rest.channels.get(channelID);
           if (channel?.type === ChannelTypes.GUILD_FORUM) {
 
             const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
@@ -207,13 +207,18 @@ try {
         const messageID = discordThreadIDMatch[0]?.groups?.messageID;
         if (!channelID) throw new Error("Channel ID not provided in link.");
         if (!messageID) throw new Error("Thread ID not provided in link.");
+        const thread = await client.rest.channels.get(channelID);
 
         // Edit the thread name if necessary.
-        const appliedTags = await getAppliedTags();
-        await client.rest.channels.edit(channelID, {
-          name: issue.title,
-          appliedTags
-        });
+        if (thread.type === ChannelTypes.PUBLIC_THREAD || thread.type === ChannelTypes.PRIVATE_THREAD) {
+
+          const appliedTags = await getAppliedTags(thread.parentID);
+          await thread.edit({
+            name: issue.title,
+            appliedTags
+          });
+
+        }
 
         // Edit the existing message.
         await client.rest.channels.editMessage(channelID, messageID, discordMessage);
@@ -225,7 +230,7 @@ try {
         console.log("Creating Discord thread...");
 
         const issueType = projectData?.issueType;
-        const appliedTags = await getAppliedTags();
+        const appliedTags = await getAppliedTags(discordChannelID);
 
         const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
           name: issue.title,

@@ -35475,11 +35475,11 @@ try {
                     }
                 ]
             };
-            async function getAppliedTags() {
+            async function getAppliedTags(channelID) {
                 const appliedTags = [];
                 const { issueType } = projectData;
                 if (issueType) {
-                    const channel = await client.rest.channels.get(discordChannelID);
+                    const channel = await client.rest.channels.get(channelID);
                     if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {
                         const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
                         if (tag)
@@ -35498,12 +35498,15 @@ try {
                     throw new Error("Channel ID not provided in link.");
                 if (!messageID)
                     throw new Error("Thread ID not provided in link.");
+                const thread = await client.rest.channels.get(channelID);
                 // Edit the thread name if necessary.
-                const appliedTags = await getAppliedTags();
-                await client.rest.channels.edit(channelID, {
-                    name: issue.title,
-                    appliedTags
-                });
+                if (thread.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.PUBLIC_THREAD || thread.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.PRIVATE_THREAD) {
+                    const appliedTags = await getAppliedTags(thread.parentID);
+                    await thread.edit({
+                        name: issue.title,
+                        appliedTags
+                    });
+                }
                 // Edit the existing message.
                 await client.rest.channels.editMessage(channelID, messageID, discordMessage);
             }
@@ -35512,7 +35515,7 @@ try {
                 // Create a thread referencing the GitHub issue.
                 console.log("Creating Discord thread...");
                 const issueType = projectData?.issueType;
-                const appliedTags = await getAppliedTags();
+                const appliedTags = await getAppliedTags(discordChannelID);
                 const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
                     name: issue.title,
                     message: discordMessage,
