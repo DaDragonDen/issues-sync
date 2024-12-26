@@ -57,14 +57,12 @@ try {
     console.log("Updating Discord thread URL in project...");
     const projectID = parseInt(projectIDString, 10);
     const response = await octokit.graphql<{
-      data: {
-        repository: {
-          issue: {
-            projectV2: {
-              items: {
-                nodes: {
-                  id: number
-                }
+      repository: {
+        issue: {
+          projectV2: {
+            items: {
+              nodes: {
+                id: number
               }
             }
           }
@@ -76,9 +74,7 @@ try {
           issue(number: $issueNumber) {
             projectV2(number: $projectID) {
               items {
-                nodes {
-                  id
-                }
+                nodes
               }
             }
           }
@@ -91,7 +87,7 @@ try {
       issueNumber: issuePayload.number
     });
     console.log(JSON.stringify(response));
-    const itemID = response.data.repository.issue.projectV2.items.nodes.id;
+    const itemID = response.repository.issue.projectV2.items.nodes.id;
 
     // Set the thread ID on the issue.
     const fieldID = core.getInput("field-id", {required: true});
