@@ -50,10 +50,12 @@ try {
     const response = await octokit.graphql<{
       data: {
         repository: {
-          projectV2: {
-            items: {
-              nodes: {
-                id: number
+          issue: {
+            projectV2: {
+              items: {
+                nodes: {
+                  id: number
+                }
               }
             }
           }
@@ -62,10 +64,12 @@ try {
     }>(`
       query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
         repository(name: $name, owner: $owner) {
-          projectV2(number: $projectID) {
-            items {
-              nodes(where: {content: {number: $issueNumber}}) {
-                id
+          issue(number: $issueNumber) {
+            projectV2(number: $projectID) {
+              items {
+                nodes {
+                  id
+                }
               }
             }
           }
@@ -77,7 +81,8 @@ try {
       projectID,
       issueNumber: issuePayload.number
     });
-    const itemID = response.data.repository.projectV2.items.nodes.id;
+    console.log(JSON.stringify(response));
+    const itemID = response.data.repository.issue.projectV2.items.nodes.id;
 
     // Set the thread ID on the issue.
     const fieldID = core.getInput("field-id", {required: true});
