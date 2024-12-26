@@ -8,6 +8,15 @@ inputs:
   discord-channel-id:
     description: "ID of Discord channel to post to."
     required: true
+  github-app-id:
+    description: "ID of GitHub App to authenticate as. If you don't have a GitHub app yet, create one."
+    required: true
+  github-app-private-key:
+    description: "A private key of the GitHub App."
+    required: true
+  github-app-installation-id:
+    description: "The installation ID of the GitHub app. You can get this from checking the URL after hitting configure at https://github.com/{USER or ORGANIZATION}/{REPOSITORY}/settings/installations."
+    required: true
   project-id:
     description: "ID of project to listen to."
     required: false
