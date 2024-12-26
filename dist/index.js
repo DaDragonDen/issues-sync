@@ -35432,7 +35432,9 @@ try {
                         } : {},
                         title: issue.title,
                         url: issue.html_url,
-                        description: issue.body_text,
+                        ...issue.body ? {
+                            description: issue.body
+                        } : {},
                         fields: [
                             {
                                 name: "Repository",
