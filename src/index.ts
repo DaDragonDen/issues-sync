@@ -87,9 +87,11 @@ try {
               id
               fields {
                 nodes {
-                  id
-                  name
-                  databaseId
+                  ... on ProjectV2Field {
+                    id
+                    name
+                    databaseId
+                  }
                 }
               }
               items {
