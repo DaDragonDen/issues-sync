@@ -1,13 +1,26 @@
 import { Client } from "oceanic.js";
 import core from "@actions/core";
 import github from "@actions/github";
+import { createAppAuth } from "@octokit/auth-app";
 
 try {
 
+  // Authenticate as an installation to get the app token.
+  const baseAuth = createAppAuth({
+    appId: core.getInput("github-app-id", {required: true}),
+    privateKey: core.getInput("github-app-private-key", {required: true}),
+    clientId: core.getInput("github-app-client-id", {required: true}),
+    clientSecret: core.getInput("github-app-client-secret", {required: true})
+  });
+
+  const installationAuth = await baseAuth({
+    type: "installation",
+    installationId: core.getInput("github-app-client-secret", {required: true}) // Get the installation ID from the GitHub app settings.
+  });
+
   // Get the issue title.
   const issuePayload = github.context.issue;
-  const githubAccessToken = core.getInput("github-token", {required: true}); 
-  const octokit = github.getOctokit(githubAccessToken);
+  const octokit = github.getOctokit(installationAuth.token, {auth: installationAuth});
   const { data: issue } = await octokit.rest.issues.get({
     issue_number: issuePayload.number,
     owner: issuePayload.owner,
