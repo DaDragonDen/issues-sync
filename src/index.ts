@@ -41,7 +41,7 @@ try {
             items: {
               nodes: {
                 id: string,
-                fieldValueByName: {
+                fieldValueByName?: {
                   text: string;
                   field: {
                     id: string;
@@ -108,7 +108,7 @@ try {
       const nodes = response.repository.issue.projectV2.items.nodes;
       const targetNodeID = response.repository.issue.id;
       const item = nodes.find((node) => node.content.id === targetNodeID);
-      const discussionLink = item?.fieldValueByName.text;
+      const discussionLink = item?.fieldValueByName?.text;
       const discordMessage = {
         embeds: [
           {
@@ -173,7 +173,7 @@ try {
           const nodes = response.repository.issue.projectV2.items.nodes;
           const item = nodes.find((node) => node.content.id === targetNodeID);
           const itemID = item?.id;
-          const fieldID = item?.fieldValueByName.field.id;
+          const fieldID = item?.fieldValueByName?.field.id;
 
           // Set the thread ID on the issue.
           await octokit.graphql(`
