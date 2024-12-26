@@ -149,7 +149,7 @@ try {
           }
         ]
       };
-      console.log(nodes);
+      console.log(response);
 
       if (discussionLink) {
 
