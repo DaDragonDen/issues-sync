@@ -60,42 +60,45 @@ try {
         }
       }
     }>(`
-      gh api graphql -f query='
-        query {
-          repository(name: "${issuePayload.repo}", owner: "${issuePayload.owner}") {
-            projectV2(number: ${projectID}) {
-              items {
-                nodes(where: {content: {number: ${issuePayload.number}}}) {
-                  id
-                }
+      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: !Int) {
+        repository(name: $name, owner: $owner) {
+          projectV2(number: $projectID) {
+            items {
+              nodes(where: {content: {number: $issueNumber}}) {
+                id
               }
             }
           }
-        }'
-    `);
+        }
+      }
+    `, {
+      name: issuePayload.repo,
+      owner: issuePayload.owner,
+      projectID,
+      issueNumber: issuePayload.number
+    });
     const itemID = response.data.repository.projectV2.items.nodes.id;
 
     // Set the thread ID on the issue.
     const fieldID = core.getInput("field-id", {required: true});
     await octokit.graphql(`
-      gh api graphql -f query='
-        mutation {
-          updateProjectV2ItemFieldValue(
-            input: {
-              projectId: ${projectID}
-              itemId: ${itemID}
-              fieldId: ${fieldID}
-              value: {
-                text: "https://discord.com/channels/${thread.guildID}/${thread.id}"
-              }
+      mutation setItemFields($projectID: Int!, $itemID: Int!, $fieldID: Int!) {
+        updateProjectV2ItemFieldValue(
+          input: {
+            projectId: $projectID
+            itemId: $itemID
+            fieldId: $fieldID
+            value: {
+              text: "https://discord.com/channels/${thread.guildID}/${thread.id}"
             }
-          ) {
-            projectV2Item {
-              id
-            }  
           }
-        }'
-    `);
+        ) {
+          projectV2Item {
+            id
+          }  
+        }
+      }
+    `, {projectID, itemID, fieldID});
 
   }
 
