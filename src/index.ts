@@ -139,7 +139,7 @@ try {
             fields: [
               {
                 name: "Repository",
-                value: `[${issuePayload.owner}/${issuePayload.repo}](${issue.repository_url})`
+                value: `[${issuePayload.owner}/${issuePayload.repo}](https://github.com/${issuePayload.owner}/${issuePayload.repo})`
               },
               {
                 name: "Issue",
