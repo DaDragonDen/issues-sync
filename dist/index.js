@@ -35399,9 +35399,7 @@ try {
           issue(number: $issueNumber) {
             projectV2(number: $projectID) {
               items {
-                nodes {
-                  id
-                }
+                nodes
               }
             }
           }
@@ -35414,7 +35412,7 @@ try {
             issueNumber: issuePayload.number
         });
         console.log(JSON.stringify(response));
-        const itemID = response.data.repository.issue.projectV2.items.nodes.id;
+        const itemID = response.repository.issue.projectV2.items.nodes.id;
         // Set the thread ID on the issue.
         const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("field-id", { required: true });
         await octokit.graphql(`
