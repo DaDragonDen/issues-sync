@@ -62,10 +62,8 @@ try {
           id: string;
           projectV2: {
             id: string;
-            fields: {
-              nodes: {
-                databaseId: number;
-              }[]
+            field: {
+              id: number;
             };
             items: {
               nodes: {
@@ -79,19 +77,17 @@ try {
         }
       }
     }>(`
-      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
+      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!, $fieldName: String!) {
         repository(name: $name, owner: $owner) {
           issue(number: $issueNumber) {
             id
             projectV2(number: $projectID) {
               id
-              fields {
-                nodes {
-                  ... on ProjectV2Field {
-                    id
-                    name
-                    databaseId
-                  }
+              field(name: $fieldName) {
+                ... on ProjectV2Field {
+                  id
+                  name
+                  databaseId
                 }
               }
               items {
@@ -112,16 +108,17 @@ try {
       name: issuePayload.repo,
       owner: issuePayload.owner,
       projectID,
-      issueNumber: issuePayload.number
+      issueNumber: issuePayload.number,
+      fieldName: core.getInput("field-name", {required: true})
     });
     console.log(JSON.stringify(response));
     const targetNodeID = response.repository.issue.id;
     const projectNodeID = response.repository.issue.projectV2.id;
     const nodes = response.repository.issue.projectV2.items.nodes;
     const itemID = nodes.find((node) => node.content.id === targetNodeID)!.id;
+    const fieldID = response.repository.issue.projectV2.field.id;
 
     // Set the thread ID on the issue.
-    const fieldID = core.getInput("field-id", {required: true});
     await octokit.graphql(`
       mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!) {
         updateProjectV2ItemFieldValue(
