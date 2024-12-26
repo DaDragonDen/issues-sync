@@ -35397,8 +35397,6 @@ try {
       query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
         repository(name: $name, owner: $owner) {
           issue(number: $issueNumber) {
-            databaseId
-            fullDatabaseId
             id
             projectV2(number: $projectID) {
               items {
@@ -35422,11 +35420,13 @@ try {
             issueNumber: issuePayload.number
         });
         console.log(JSON.stringify(response));
-        const itemID = response.repository.issue.projectV2.items.nodes.id;
+        const targetNodeID = response.repository.issue.id;
+        const nodes = response.repository.issue.projectV2.items.nodes;
+        const itemID = nodes.find((node) => node.id === targetNodeID).id;
         // Set the thread ID on the issue.
         const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("field-id", { required: true });
         await octokit.graphql(`
-      mutation setItemFields($projectID: Int!, $itemID: Int!, $fieldID: Int!) {
+      mutation setItemFields($projectID: ID!, $itemID: ID!, $fieldID: ID!) {
         updateProjectV2ItemFieldValue(
           input: {
             projectId: $projectID
