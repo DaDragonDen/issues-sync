@@ -35400,6 +35400,11 @@ try {
             id
             projectV2(number: $projectID) {
               id
+              fields {
+                id
+                name
+                databaseId
+              }
               items {
                 nodes {
                   id

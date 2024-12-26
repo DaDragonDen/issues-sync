@@ -62,6 +62,9 @@ try {
           id: string;
           projectV2: {
             id: string;
+            fields: {
+              databaseId: number;
+            };
             items: {
               nodes: {
                 id: string,
@@ -80,6 +83,11 @@ try {
             id
             projectV2(number: $projectID) {
               id
+              fields {
+                id
+                name
+                databaseId
+              }
               items {
                 nodes {
                   id
