@@ -35397,7 +35397,6 @@ try {
       query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
         repository(name: $name, owner: $owner) {
           issue(number: $issueNumber) {
-            id
             projectV2(number: $projectID) {
               items {
                 nodes {
