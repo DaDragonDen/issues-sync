@@ -35409,13 +35409,12 @@ try {
             fieldName
         });
     }
+    console.log(_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.action);
     switch (_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.action) {
         case "opened":
         case "edited": {
-            if (!fieldName) {
-                console.warn("A field name must be provided to search for an existing discussion thread on Discord.");
-                break;
-            }
+            if (!fieldName)
+                throw new Error("A field name must be provided to search for an existing discussion thread on Discord.");
             // Get the discussion link from GitHub.
             const response = await getProjectItemQueryResponse();
             const nodes = response.repository.issue.projectV2.items.nodes;
