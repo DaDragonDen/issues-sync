@@ -33856,7 +33856,7 @@ try {
     if (projectID) {
         console.log("Updating Discord thread URL in project...");
         const response = await octokit.graphql(`
-      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: !Int) {
+      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
         repository(name: $name, owner: $owner) {
           projectV2(number: $projectID) {
             items {

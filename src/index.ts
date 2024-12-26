@@ -60,7 +60,7 @@ try {
         }
       }
     }>(`
-      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: !Int) {
+      query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
         repository(name: $name, owner: $owner) {
           projectV2(number: $projectID) {
             items {
