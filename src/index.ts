@@ -140,9 +140,9 @@ try {
 
         // Verify the link is set up correctly.
         const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
-        const discordThreadIDMatch = discussionLink.match(discordLinkRegex);
-        const channelID = discordThreadIDMatch?.groups?.channelID;
-        const messageID = discordThreadIDMatch?.groups?.messageID;
+        const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
+        const channelID = discordThreadIDMatch[0].groups?.channelID;
+        const messageID = discordThreadIDMatch[0].groups?.messageID;
         if (!channelID) throw new Error("Channel ID not provided in link.");
         if (!messageID) throw new Error("Thread ID not provided in link.");
 
