@@ -1,4 +1,4 @@
-import { Client } from "oceanic.js";
+import { ChannelTypes, Client } from "oceanic.js";
 import core from "@actions/core";
 import github from "@actions/github";
 import { App } from "octokit";
@@ -43,6 +43,9 @@ try {
         repository: {
           issue: {
             id: string;
+            issueType?: {
+              name?: string
+            }
             projectV2: {
               id: string;
               field: {
@@ -71,6 +74,9 @@ try {
           repository(name: $name, owner: $owner) {
             issue(number: $issueNumber) {
               id
+              issueType {
+                name
+              }
               projectV2(number: $projectNumber) {
                 id
                 field(name: $fieldName) {
@@ -118,15 +124,12 @@ try {
 
     } while (response.repository.issue.projectV2.items.pageInfo.hasNextPage && !item);
 
-    if (response && item) {
-
-      return {
-        projectID: response.repository.issue.projectV2.id,
-        itemID: item.id,
-        fieldText: item.fieldValueByName?.text,
-        fieldID: response.repository.issue.projectV2.field.id
-      }
-
+    return {
+      projectID: response.repository.issue.projectV2.id,
+      itemID: item?.id,
+      fieldText: item?.fieldValueByName?.text,
+      fieldID: response.repository.issue.projectV2.field.id,
+      issueType: response.repository.issue.issueType?.name
     }
 
   }
@@ -195,9 +198,24 @@ try {
         // Create a thread referencing the GitHub issue.
         console.log("Creating Discord thread...");
 
+        const issueType = projectData?.issueType;
+        const appliedTags = [];
+        if (issueType) {
+
+          const channel = await client.rest.channels.get(discordChannelID);
+          if (channel?.type === ChannelTypes.GUILD_FORUM) {
+
+            const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
+            if (tag) appliedTags.push(tag.id);
+
+          }
+
+        }
+
         const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
           name: issue.title,
-          message: discordMessage
+          message: discordMessage,
+          appliedTags
         });
 
         const threadMessageID = thread.lastMessageID;
@@ -207,7 +225,7 @@ try {
 
           // Set the thread ID on the issue.
           console.log("Updating Discord thread URL in project...");
-          if (!projectData) throw new Error("Couldn't get project data.");
+          if (!projectData?.itemID) throw new Error("Couldn't get project data.");
 
           await octokit.graphql(`
             mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {

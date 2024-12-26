@@ -35380,6 +35380,9 @@ try {
           repository(name: $name, owner: $owner) {
             issue(number: $issueNumber) {
               id
+              issueType {
+                name
+              }
               projectV2(number: $projectNumber) {
                 id
                 field(name: $fieldName) {
@@ -35424,14 +35427,13 @@ try {
             item = nodes.find((node) => node.content.id === targetNodeID);
             endCursor = projectInfo.items.pageInfo.endCursor;
         } while (response.repository.issue.projectV2.items.pageInfo.hasNextPage && !item);
-        if (response && item) {
-            return {
-                projectID: response.repository.issue.projectV2.id,
-                itemID: item.id,
-                fieldText: item.fieldValueByName?.text,
-                fieldID: response.repository.issue.projectV2.field.id
-            };
-        }
+        return {
+            projectID: response.repository.issue.projectV2.id,
+            itemID: item?.id,
+            fieldText: item?.fieldValueByName?.text,
+            fieldID: response.repository.issue.projectV2.field.id,
+            issueType: response.repository.issue.issueType?.name
+        };
     }
     const githubActionType = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.action;
     switch (githubActionType) {
@@ -35491,16 +35493,27 @@ try {
                 // Create a discussion link since it doesn't exist.
                 // Create a thread referencing the GitHub issue.
                 console.log("Creating Discord thread...");
+                const issueType = projectData?.issueType;
+                const appliedTags = [];
+                if (issueType) {
+                    const channel = await client.rest.channels.get(discordChannelID);
+                    if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {
+                        const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
+                        if (tag)
+                            appliedTags.push(tag.id);
+                    }
+                }
                 const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
                     name: issue.title,
-                    message: discordMessage
+                    message: discordMessage,
+                    appliedTags
                 });
                 const threadMessageID = thread.lastMessageID;
                 // Find the project item ID.
                 if (projectID) {
                     // Set the thread ID on the issue.
                     console.log("Updating Discord thread URL in project...");
-                    if (!projectData)
+                    if (!projectData?.itemID)
                         throw new Error("Couldn't get project data.");
                     await octokit.graphql(`
             mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
@@ -49278,7 +49291,8 @@ var dist_bundle_OAuthApp = OAuthApp.defaults({ Octokit: dist_bundle_Octokit });
 
 __nccwpck_require__.a(__webpack_module__, async (__webpack_handle_async_dependencies__, __webpack_async_result__) => { try {
 /* harmony export */ __nccwpck_require__.d(__webpack_exports__, {
-/* harmony export */   Kje: () => (/* binding */ Client)
+/* harmony export */   Kje: () => (/* binding */ Client),
+/* harmony export */   rbe: () => (/* reexport safe */ _dist_lib_Constants_js__WEBPACK_IMPORTED_MODULE_0__.ChannelTypes)
 /* harmony export */ });
 /* unused harmony exports Channel, Interaction, AnnouncementChannel, AnnouncementThreadChannel, Application, ApplicationCommand, Attachment, AuditLogEntry, AutocompleteInteraction, AutoModerationRule, Base, BaseEntitlement, Bucket, CategoryChannel, Clan, ClientApplication, Constants, CommandInteraction, Collection, ComponentInteraction, DiscordHTTPError, DiscordRESTError, Dispatcher, DefaultDispatchEvents, Errors, Entitlement, ExtendedUser, ForumChannel, GroupChannel, Guild, GuildChannel, GuildPreview, GuildScheduledEvent, GuildTemplate, Integration, InteractionResolvedChannel, InteractionOptionsWrapper, Invite, InviteGuild, MediaChannel, Member, Message, MessageInteractionResponse, ModalSubmitInteraction, ModalSubmitInteractionComponentsWrapper, OAuthApplication, OAuthGuild, OAuthHelper, PartialApplication, Permission, PermissionOverwrite, PingInteraction, Poll, PrivateChannel, PrivateThreadChannel, PublicThreadChannel, RequestHandler, RESTManager, Role, Routes, SelectMenuValuesWrapper, SequentialBucket, SimpleCollection, Shard, ShardManager, StageChannel, StageInstance, Team, TestEntitlement, TextableChannel, TextableVoiceChannel, TextChannel, ThreadableChannel, ThreadChannel, ThreadOnlyChannel, TypedCollection, TypedEmitter, UnavailableGuild, User, Util, VoiceChannel, VoiceState, Webhook */
 /* harmony import */ var _dist_lib_Constants_js__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(5660);
