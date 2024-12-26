@@ -35404,6 +35404,11 @@ try {
               items {
                 nodes {
                   id
+                  content {
+                    ... on Issue {
+                      id
+                    }
+                  }
                 }
               }
             }
