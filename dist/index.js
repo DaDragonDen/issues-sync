@@ -35419,7 +35419,10 @@ try {
                 projectNumber: projectID,
                 issueNumber: issuePayload.number,
                 fieldName,
-                endCursor
+                endCursor,
+                headers: {
+                    "GraphQL-Features": "issue_types"
+                }
             });
             const projectInfo = response.repository.issue.projectV2;
             const nodes = projectInfo.items.nodes;
