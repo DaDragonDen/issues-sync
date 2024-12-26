@@ -33827,7 +33827,7 @@ try {
     });
     const installationAuth = await baseAuth({
         type: "installation",
-        installationId: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-client-secret", { required: true }) // Get the installation ID from the GitHub app settings.
+        installationId: _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-app-installation-id", { required: true }) // Get the installation ID from the GitHub app settings.
     });
     // Get the issue title.
     const issuePayload = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.issue;

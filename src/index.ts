@@ -15,7 +15,7 @@ try {
 
   const installationAuth = await baseAuth({
     type: "installation",
-    installationId: core.getInput("github-app-client-secret", {required: true}) // Get the installation ID from the GitHub app settings.
+    installationId: core.getInput("github-app-installation-id", {required: true}) // Get the installation ID from the GitHub app settings.
   });
 
   // Get the issue title.
