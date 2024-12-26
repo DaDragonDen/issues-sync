@@ -61,6 +61,7 @@ try {
         issue: {
           id: string;
           projectV2: {
+            id: string;
             items: {
               nodes: {
                 id: string,
@@ -78,6 +79,7 @@ try {
           issue(number: $issueNumber) {
             id
             projectV2(number: $projectID) {
+              id
               items {
                 nodes {
                   id
@@ -100,6 +102,7 @@ try {
     });
     console.log(JSON.stringify(response));
     const targetNodeID = response.repository.issue.id;
+    const projectNodeID = response.repository.issue.projectV2.id;
     const nodes = response.repository.issue.projectV2.items.nodes;
     const itemID = nodes.find((node) => node.content.id === targetNodeID)!.id;
 
@@ -109,7 +112,7 @@ try {
       mutation setItemFields($projectID: ID!, $itemID: ID!, $fieldID: ID!) {
         updateProjectV2ItemFieldValue(
           input: {
-            projectId: $projectID
+            projectId: $projectNodeID
             itemId: $itemID
             fieldId: $fieldID
             value: {
@@ -122,7 +125,7 @@ try {
           }  
         }
       }
-    `, {projectID, itemID, fieldID});
+    `, {projectNodeID, itemID, fieldID});
 
   }
 
