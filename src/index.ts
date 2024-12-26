@@ -31,7 +31,7 @@ try {
   await client.restMode(true);
   
   const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
-    name: `[${issue.number}] ${issue.title}`,
+    name: issue.title,
     message: {
       embeds: [
         {
@@ -44,7 +44,17 @@ try {
           } : {},
           title: issue.title,
           url: issue.html_url,
-          description: issue.body_text
+          description: issue.body_text,
+          fields: [
+            {
+              name: "Repository",
+              value: `[${issuePayload.owner}/${issuePayload.repo}](${issue.repository_url})`,
+            },
+            {
+              name: "Issue",
+              value: `${issue.number}`,
+            }
+          ]
         }
       ]
     }
