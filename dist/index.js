@@ -33831,6 +33831,7 @@ try {
     const discordChannelID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-channel-id", { required: true });
     const issueCreator = issue.user;
     const client = new oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .Client */ .Kje({ auth: `Bot ${discordToken}` });
+    await client.restMode(true);
     const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
         name: `[${issue.number}] ${issue.title}`,
         message: {
