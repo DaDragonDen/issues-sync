@@ -35457,7 +35457,7 @@ try {
                     }
                 ]
             };
-            console.log(response);
+            console.log(JSON.stringify(response));
             if (discussionLink) {
                 // Verify the link is set up correctly.
                 const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;

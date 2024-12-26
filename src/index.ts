@@ -149,7 +149,7 @@ try {
           }
         ]
       };
-      console.log(response);
+      console.log(JSON.stringify(response));
 
       if (discussionLink) {
 
