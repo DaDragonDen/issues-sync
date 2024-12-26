@@ -35537,6 +35537,7 @@ try {
                     locked: githubActionType === "locked"
                 } : {}
             });
+            break;
         }
         case "deleted": {
             const discussionLink = await getDiscussionLink();

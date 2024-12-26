@@ -244,6 +244,8 @@ try {
         } : {}
       });
 
+      break;
+
     }
 
     case "deleted": {
