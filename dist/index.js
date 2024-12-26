@@ -35472,10 +35472,10 @@ try {
             };
             if (discussionLink) {
                 // Verify the link is set up correctly.
-                const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
+                const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
                 const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
-                const channelID = discordThreadIDMatch[0].groups?.channelID;
-                const messageID = discordThreadIDMatch[0].groups?.messageID;
+                const channelID = discordThreadIDMatch[0]?.groups?.channelID;
+                const messageID = discordThreadIDMatch[0]?.groups?.messageID;
                 if (!channelID)
                     throw new Error("Channel ID not provided in link.");
                 if (!messageID)
@@ -35523,7 +35523,7 @@ try {
                         projectNodeID: projectData.projectID,
                         itemID: projectData.itemID,
                         fieldID: projectData.fieldID,
-                        threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
+                        threadJumpLink: `https://discord.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
                     });
                 }
                 break;
@@ -35538,9 +35538,9 @@ try {
             const discussionLink = projectData?.fieldText;
             if (!discussionLink)
                 throw new Error("Discord discussion link missing.");
-            const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
+            const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
             const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
-            const channelID = discordThreadIDMatch[0].groups?.channelID;
+            const channelID = discordThreadIDMatch[0]?.groups?.channelID;
             if (!channelID)
                 throw new Error("Channel ID not provided in link.");
             await client.rest.channels.edit(channelID, {
