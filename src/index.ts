@@ -20,6 +20,7 @@ try {
   const discordChannelID = core.getInput("discord-channel-id", {required: true});
   const issueCreator = issue.user;
   const client = new Client({auth: `Bot ${discordToken}`});
+  await client.restMode(true);
   
   const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
     name: `[${issue.number}] ${issue.title}`,
