@@ -96,17 +96,13 @@ try {
 
   }
 
+  console.log(github.context.action);
   switch (github.context.action) {
 
     case "opened":
     case "edited": {
 
-      if (!fieldName) {
-
-        console.warn("A field name must be provided to search for an existing discussion thread on Discord.");
-        break;
-
-      }
+      if (!fieldName) throw new Error("A field name must be provided to search for an existing discussion thread on Discord.");
 
       // Get the discussion link from GitHub.
       const response = await getProjectItemQueryResponse();
