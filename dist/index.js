@@ -35411,7 +35411,7 @@ try {
     }
     switch (_actions_github__WEBPACK_IMPORTED_MODULE_2__.context.action) {
         case "opened":
-        case "updated": {
+        case "edited": {
             if (!fieldName) {
                 console.warn("A field name must be provided to search for an existing discussion thread on Discord.");
                 break;

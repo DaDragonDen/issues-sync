@@ -99,7 +99,7 @@ try {
   switch (github.context.action) {
 
     case "opened":
-    case "updated": {
+    case "edited": {
 
       if (!fieldName) {
 
