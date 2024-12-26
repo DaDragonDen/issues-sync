@@ -109,7 +109,7 @@ try {
     // Set the thread ID on the issue.
     const fieldID = core.getInput("field-id", {required: true});
     await octokit.graphql(`
-      mutation setItemFields($projectID: ID!, $itemID: ID!, $fieldID: ID!) {
+      mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!) {
         updateProjectV2ItemFieldValue(
           input: {
             projectId: $projectNodeID
