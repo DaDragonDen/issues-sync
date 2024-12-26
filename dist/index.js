@@ -35369,53 +35369,69 @@ try {
     const projectID = parseInt(projectIDString, 10);
     const client = new oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .Client */ .Kje({ auth: `Bot ${discordToken}` });
     await client.restMode(true);
-    async function getProjectItemQueryResponse() {
-        return await octokit.graphql(`
-      query getProjectItem($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!, $fieldName: String!) {
-        repository(name: $name, owner: $owner) {
-          issue(number: $issueNumber) {
-            id
-            projectV2(number: $projectID) {
+    async function getProjectData() {
+        let response;
+        let item;
+        let endCursor;
+        do {
+            // Get the response from GitHub.
+            response = await octokit.graphql(`
+        query getProjectItem($name: String!, $owner: String!, $projectNumber: Int!, $issueNumber: Int!, $fieldName: String!, $endCursor: String) {
+          repository(name: $name, owner: $owner) {
+            issue(number: $issueNumber) {
               id
-              field(name: $fieldName) {
-                ... on ProjectV2Field {
-                  id
+              projectV2(number: $projectNumber) {
+                id
+                field(name: $fieldName) {
+                  ... on ProjectV2Field {
+                    id
+                  }
                 }
-              }
-              items {
-                nodes {
-                  id
-                  fieldValueByName(name: $fieldName) {
-                    ... on ProjectV2ItemFieldTextValue {
-                      text
+                items(first: 100, after: $endCursor) {
+                  nodes {
+                    id
+                    fieldValueByName(name: $fieldName) {
+                      ... on ProjectV2ItemFieldTextValue {
+                        text
+                      }
+                    }
+                    content {
+                      ... on Issue {
+                        id
+                      }
                     }
                   }
-                  content {
-                    ... on Issue {
-                      id
-                    }
+                  pageInfo {
+                    endCursor
+                    hasNextPage
                   }
                 }
               }
             }
           }
         }
-      }
-    `, {
-            name: issuePayload.repo,
-            owner: issuePayload.owner,
-            projectID,
-            issueNumber: issuePayload.number,
-            fieldName
-        });
-    }
-    async function getDiscussionLink() {
-        const response = await getProjectItemQueryResponse();
-        const nodes = response.repository.issue.projectV2.items.nodes;
-        const targetNodeID = response.repository.issue.id;
-        const item = nodes.find((node) => node.content.id === targetNodeID);
-        const discussionLink = item?.fieldValueByName?.text;
-        return discussionLink;
+      `, {
+                name: issuePayload.repo,
+                owner: issuePayload.owner,
+                projectNumber: projectID,
+                issueNumber: issuePayload.number,
+                fieldName,
+                endCursor
+            });
+            const projectInfo = response.repository.issue.projectV2;
+            const nodes = projectInfo.items.nodes;
+            const targetNodeID = response.repository.issue.id;
+            item = nodes.find((node) => node.content.id === targetNodeID);
+            endCursor = projectInfo.items.pageInfo.endCursor;
+        } while (response.repository.issue.projectV2.items.pageInfo.hasNextPage && !item);
+        if (response && item) {
+            return {
+                projectID: response.repository.issue.projectV2.id,
+                itemID: item.id,
+                fieldText: item.fieldValueByName?.text,
+                fieldID: response.repository.issue.projectV2.field.id
+            };
+        }
     }
     const githubActionType = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.action;
     switch (githubActionType) {
@@ -35424,11 +35440,8 @@ try {
             if (!fieldName)
                 throw new Error("A field name must be provided to search for an existing discussion thread on Discord.");
             // Get the discussion link from GitHub.
-            const response = await getProjectItemQueryResponse();
-            const nodes = response.repository.issue.projectV2.items.nodes;
-            const targetNodeID = response.repository.issue.id;
-            const item = nodes.find((node) => node.content.id === targetNodeID);
-            const discussionLink = item?.fieldValueByName?.text;
+            const projectData = await getProjectData();
+            const discussionLink = projectData?.fieldText;
             const discordMessage = {
                 embeds: [
                     {
@@ -35457,7 +35470,6 @@ try {
                     }
                 ]
             };
-            console.log(JSON.stringify(response));
             if (discussionLink) {
                 // Verify the link is set up correctly.
                 const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
@@ -35486,15 +35498,10 @@ try {
                 const threadMessageID = thread.lastMessageID;
                 // Find the project item ID.
                 if (projectID) {
-                    console.log("Updating Discord thread URL in project...");
-                    const response = await getProjectItemQueryResponse();
-                    const targetNodeID = response.repository.issue.id;
-                    const projectNodeID = response.repository.issue.projectV2.id;
-                    const nodes = response.repository.issue.projectV2.items.nodes;
-                    const item = nodes.find((node) => node.content.id === targetNodeID);
-                    const itemID = item?.id;
-                    const fieldID = response.repository.issue.projectV2.field.id;
                     // Set the thread ID on the issue.
+                    console.log("Updating Discord thread URL in project...");
+                    if (!projectData)
+                        throw new Error("Couldn't get project data.");
                     await octokit.graphql(`
             mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
               updateProjectV2ItemFieldValue(
@@ -35512,7 +35519,12 @@ try {
                 }  
               }
             }
-          `, { projectNodeID, itemID, fieldID, threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}` });
+          `, {
+                        projectNodeID: projectData.projectID,
+                        itemID: projectData.itemID,
+                        fieldID: projectData.fieldID,
+                        threadJumpLink: `https://discordapp.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
+                    });
                 }
                 break;
             }
@@ -35522,7 +35534,8 @@ try {
         case "locked":
         case "opened":
         case "closed": {
-            const discussionLink = await getDiscussionLink();
+            const projectData = await getProjectData();
+            const discussionLink = projectData?.fieldText;
             if (!discussionLink)
                 throw new Error("Discord discussion link missing.");
             const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
@@ -35541,7 +35554,8 @@ try {
             break;
         }
         case "deleted": {
-            const discussionLink = await getDiscussionLink();
+            const projectData = await getProjectData();
+            const discussionLink = projectData?.fieldText;
             if (!discussionLink)
                 throw new Error("Discord discussion link missing.");
             const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
