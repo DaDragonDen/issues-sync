@@ -96,7 +96,19 @@ try {
 
   }
 
-  switch (github.context.payload.action) {
+  async function getDiscussionLink() {
+
+    const response = await getProjectItemQueryResponse();
+    const nodes = response.repository.issue.projectV2.items.nodes;
+    const targetNodeID = response.repository.issue.id;
+    const item = nodes.find((node) => node.content.id === targetNodeID);
+    const discussionLink = item?.fieldValueByName?.text;
+    return discussionLink;
+
+  }
+
+  const githubActionType = github.context.payload.action;
+  switch (githubActionType) {
 
     case "opened":
     case "edited": {
@@ -127,7 +139,7 @@ try {
             fields: [
               {
                 name: "Repository",
-                value: `[${issuePayload.owner}/${issuePayload.repo}](${issue.repository_url})`,
+                value: `[${issuePayload.owner}/${issuePayload.repo}](${issue.repository_url})`
               },
               {
                 name: "Issue",
@@ -203,11 +215,49 @@ try {
 
         }
 
-        console.log("Successfully created issue.");
         break;
 
       }
       
+      break;
+
+    }
+
+    case "unlocked":
+    case "locked":
+    case "opened":
+    case "closed": {
+
+      const discussionLink = await getDiscussionLink();
+      if (!discussionLink) throw new Error("Discord discussion link missing.");
+
+      const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
+      const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
+      const channelID = discordThreadIDMatch[0].groups?.channelID;
+      if (!channelID) throw new Error("Channel ID not provided in link.");
+      await client.rest.channels.edit(channelID, {
+        ... githubActionType === "closed" || githubActionType === "opened" ? {
+          archived: githubActionType === "closed"
+        } : {},
+        ... githubActionType === "locked" || githubActionType === "unlocked" ? {
+          locked: githubActionType === "locked"
+        } : {}
+      });
+
+    }
+
+    case "deleted": {
+
+      const discussionLink = await getDiscussionLink();
+      if (!discussionLink) throw new Error("Discord discussion link missing.");
+
+      const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
+      const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
+      const channelID = discordThreadIDMatch[0].groups?.channelID;
+      if (!channelID) throw new Error("Channel ID not provided in link.");
+      
+      await client.rest.channels.delete(channelID, "Issue deleted.");
+
       break;
 
     }

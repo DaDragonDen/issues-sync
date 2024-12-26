@@ -2,9 +2,6 @@ name: "Issue Sync"
 author: "Christian Toney"
 description: "Sync issues between GitHub and Discord."
 inputs:
-  github-token:
-    description: "Token provided by GitHub."
-    required: true
   discord-token:
     description: "Token of Discord bot account."
     required: true
