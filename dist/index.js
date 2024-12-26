@@ -33852,9 +33852,10 @@ try {
         }
     });
     // Find the project item ID.
-    const projectID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("project-id", { required: false });
-    if (projectID) {
+    const projectIDString = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("project-id", { required: false });
+    if (projectIDString) {
         console.log("Updating Discord thread URL in project...");
+        const projectID = parseInt(projectIDString, 10);
         const response = await octokit.graphql(`
       query getItemID($name: String!, $owner: String!, $projectID: Int!, $issueNumber: Int!) {
         repository(name: $name, owner: $owner) {
