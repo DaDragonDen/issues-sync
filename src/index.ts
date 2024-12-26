@@ -38,14 +38,14 @@ try {
           id: string;
           projectV2: {
             id: string;
+            field: {
+              id: string;
+            },
             items: {
               nodes: {
                 id: string,
                 fieldValueByName?: {
                   text: string;
-                  field: {
-                    id: string;
-                  }
                 }
                 content: {
                   id: string
@@ -62,17 +62,17 @@ try {
             id
             projectV2(number: $projectID) {
               id
+              field(name: $fieldName) {
+                ... on ProjectV2Field {
+                  id
+                }
+              }
               items {
                 nodes {
                   id
                   fieldValueByName(name: $fieldName) {
                     ... on ProjectV2ItemFieldTextValue {
                       text
-                      field {
-                        ... on ProjectV2Field {
-                          id
-                        }
-                      }
                     }
                   }
                   content {
@@ -173,7 +173,7 @@ try {
           const nodes = response.repository.issue.projectV2.items.nodes;
           const item = nodes.find((node) => node.content.id === targetNodeID);
           const itemID = item?.id;
-          const fieldID = item?.fieldValueByName?.field.id;
+          const fieldID = response.repository.issue.projectV2.field.id;
 
           // Set the thread ID on the issue.
           await octokit.graphql(`

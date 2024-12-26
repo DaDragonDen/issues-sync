@@ -35377,17 +35377,17 @@ try {
             id
             projectV2(number: $projectID) {
               id
+              field(name: $fieldName) {
+                ... on ProjectV2Field {
+                  id
+                }
+              }
               items {
                 nodes {
                   id
                   fieldValueByName(name: $fieldName) {
                     ... on ProjectV2ItemFieldTextValue {
                       text
-                      field {
-                        ... on ProjectV2Field {
-                          id
-                        }
-                      }
                     }
                   }
                   content {
@@ -35478,7 +35478,7 @@ try {
                     const nodes = response.repository.issue.projectV2.items.nodes;
                     const item = nodes.find((node) => node.content.id === targetNodeID);
                     const itemID = item?.id;
-                    const fieldID = item?.fieldValueByName?.field.id;
+                    const fieldID = response.repository.issue.projectV2.field.id;
                     // Set the thread ID on the issue.
                     await octokit.graphql(`
             mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
