@@ -22,7 +22,7 @@ try {
     repo: issuePayload.repo
   });
 
-  const fieldID = core.getInput("github-field-id", {required: true});
+  const fieldID = core.getInput("github-project-field-id", {required: true});
   const discordToken = core.getInput("discord-token", {required: true});
   const discordChannelID = core.getInput("discord-channel-id", {required: true});
   const projectItemID = core.getInput("github-project-item-id", {required: true});

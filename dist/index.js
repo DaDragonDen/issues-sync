@@ -35362,7 +35362,7 @@ try {
         owner: issuePayload.owner,
         repo: issuePayload.repo
     });
-    const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-field-id", { required: true });
+    const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-project-field-id", { required: true });
     const discordToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-token", { required: true });
     const discordChannelID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-channel-id", { required: true });
     const projectItemID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-project-item-id", { required: true });
