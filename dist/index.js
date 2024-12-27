@@ -35416,6 +35416,7 @@ try {
     }
     const githubActionType = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.action;
     const { fieldText: discussionLink, issueType } = await getFieldTextAndIssueType();
+    const discordUserMap = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-user-map", { required: false })?.split("\n").map((row) => row.split("="));
     const discordMessage = {
         embeds: [
             {
@@ -35439,7 +35440,17 @@ try {
                     {
                         name: "Issue",
                         value: `${issue.number}`,
-                    }
+                    },
+                    ...issue.assignees?.[0] ? [
+                        {
+                            name: "Assignees",
+                            value: issue.assignees.map((assignee, index) => {
+                                const connection = discordUserMap?.find((pair) => parseInt(pair[0], 10) === assignee.id);
+                                const discordUserID = connection?.[1];
+                                return `${connection ? `<@${discordUserID}>` : `[@${assignee.login}](${assignee.html_url})`}${issue.assignees?.[index + 1] ? "\n" : ""}`;
+                            }).join()
+                        }
+                    ] : []
                 ]
             }
         ]
