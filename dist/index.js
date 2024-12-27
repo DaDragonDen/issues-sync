@@ -35409,7 +35409,8 @@ try {
                 "GraphQL-Features": "issue_types"
             }
         });
-        console.log(response);
+        console.log(projectItemID);
+        console.log(fieldName);
         return {
             fieldText: response.node.fieldValueByName?.text,
             issueType: response.node.content.issueType?.name

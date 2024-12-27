@@ -88,7 +88,8 @@ try {
       }
     });
 
-    console.log(response);
+    console.log(projectItemID);
+    console.log(fieldName)
 
     return {
       fieldText: response.node.fieldValueByName?.text,
