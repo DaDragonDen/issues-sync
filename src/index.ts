@@ -88,6 +88,8 @@ try {
       }
     });
 
+    console.log(response);
+
     return {
       fieldText: response.node.fieldValueByName?.text,
       issueType: response.node.content.issueType?.name
@@ -147,14 +149,11 @@ try {
 
     const appliedTags = [];
 
-    console.log(issueType);
-
     if (issueType) {
 
       const channel = await client.rest.channels.get(channelID);
       if (channel?.type === ChannelTypes.GUILD_FORUM) {
 
-        console.log(channel.availableTags);
         const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
         if (tag) appliedTags.push(tag.id);
 
