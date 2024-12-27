@@ -52,11 +52,11 @@ try {
     // Get the response from GitHub.
     const response = await octokit.graphql<{
       node: {
-        fieldValueByName: {
+        fieldValueByName?: {
           text?: string
         };
         content: {
-          issueType: {
+          issueType?: {
             name?: string
           }
         }
@@ -89,8 +89,8 @@ try {
     });
 
     return {
-      fieldText: response.node.fieldValueByName.text,
-      issueType: response.node.content.issueType.name
+      fieldText: response.node.fieldValueByName?.text,
+      issueType: response.node.content.issueType?.name
     }
 
   }

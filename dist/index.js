@@ -35410,8 +35410,8 @@ try {
             }
         });
         return {
-            fieldText: response.node.fieldValueByName.text,
-            issueType: response.node.content.issueType.name
+            fieldText: response.node.fieldValueByName?.text,
+            issueType: response.node.content.issueType?.name
         };
     }
     const githubActionType = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.action;
