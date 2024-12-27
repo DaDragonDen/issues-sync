@@ -35446,8 +35446,8 @@ try {
                             name: `Assignee${issue.assignees.length > 1 ? "s" : ""}`,
                             value: issue.assignees.map((assignee, index) => {
                                 const connection = discordUserMap?.find((pair) => parseInt(pair[0], 10) === assignee.id);
-                                const discordUserID = connection?.[1]?.replaceAll("\n", "");
-                                console.log(discordUserID);
+                                const discordUserID = connection?.[1];
+                                console.log(discordUserMap);
                                 return `${discordUserID ? `<@${discordUserID}>` : `[@${assignee.login}](${assignee.html_url})`}${issue.assignees?.[index + 1] ? "\n" : ""}`;
                             }).join()
                         }
