@@ -137,7 +137,10 @@ try {
           ] : []
         ]
       }
-    ]
+    ],
+    allowedMentions: {
+      users: true
+    }
   };
 
   async function getAppliedTags(channelID: string) {

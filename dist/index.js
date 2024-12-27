@@ -35453,7 +35453,10 @@ try {
                     ] : []
                 ]
             }
-        ]
+        ],
+        allowedMentions: {
+            users: true
+        }
     };
     async function getAppliedTags(channelID) {
         const appliedTags = [];
