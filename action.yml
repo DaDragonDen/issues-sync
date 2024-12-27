@@ -18,6 +18,9 @@ inputs:
   discord-channel-id:
     description: "ID of Discord channel to post to."
     required: true
+  discord-user-map:
+    description: "A string of keys and values that maps GitHub user IDs to Discord user IDs."
+    required: false
 
   # Authentication
   discord-token:
