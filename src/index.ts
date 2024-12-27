@@ -129,8 +129,8 @@ try {
               value: issue.assignees.map((assignee, index) => {
 
                 const connection = discordUserMap?.find((pair) => parseInt(pair[0], 10) === assignee.id);
-                const discordUserID = connection?.[1];
-                return `${connection ? `<@${discordUserID}>` : `[@${assignee.login}](${assignee.html_url})`}${issue.assignees?.[index + 1] ? "\n" : ""}`
+                const discordUserID = parseInt(connection?.[1] ?? "", 10);
+                return `${discordUserID ? `<@${discordUserID}>` : `[@${assignee.login}](${assignee.html_url})`}${issue.assignees?.[index + 1] ? "\n" : ""}`
 
               }).join()
             }
