@@ -35362,91 +35362,62 @@ try {
         owner: issuePayload.owner,
         repo: issuePayload.repo
     });
-    const fieldName = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("field-name", { required: false });
+    const fieldID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-field-id", { required: true });
     const discordToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-token", { required: true });
     const discordChannelID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-channel-id", { required: true });
-    const projectIDString = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("project-id", { required: false });
-    const projectID = parseInt(projectIDString, 10);
+    const projectItemID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-project-item-id", { required: true });
+    const projectID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-project-id", { required: false });
     const client = new oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .Client */ .Kje({ auth: `Bot ${discordToken}` });
     await client.restMode(true);
-    async function getProjectData() {
-        let response;
-        let item;
-        let endCursor;
-        do {
-            // Get the response from GitHub.
-            response = await octokit.graphql(`
-        query getProjectItem($name: String!, $owner: String!, $projectNumber: Int!, $issueNumber: Int!, $fieldName: String!, $endCursor: String) {
-          repository(name: $name, owner: $owner) {
-            issue(number: $issueNumber) {
-              id
-              issueType {
-                name
+    async function getFieldTextAndIssueType() {
+        // Find the field name from the ID.
+        const { node: { name: fieldName } } = await octokit.graphql(`
+      query getFieldName($fieldID: ID!) {
+        node(id: $fieldID) {
+          ... on ProjectV2Field {
+            name
+          }
+        }
+      }  
+    `);
+        // Get the response from GitHub.
+        const response = await octokit.graphql(`
+      query getProjectItem($projectItemID: ID!, $fieldName: String!) {
+        node(id: $projectItemID) {
+          ... on ProjectV2Item {
+            fieldValueByName(name: $fieldName) {
+              ... on ProjectV2ItemFieldTextValue {
+                text
               }
-              projectV2(number: $projectNumber) {
-                id
-                field(name: $fieldName) {
-                  ... on ProjectV2Field {
-                    id
-                  }
-                }
-                items(first: 100, after: $endCursor) {
-                  nodes {
-                    id
-                    fieldValueByName(name: $fieldName) {
-                      ... on ProjectV2ItemFieldTextValue {
-                        text
-                      }
-                    }
-                    content {
-                      ... on Issue {
-                        id
-                      }
-                    }
-                  }
-                  pageInfo {
-                    endCursor
-                    hasNextPage
-                  }
+            }
+            content {
+              ... on Issue {
+                issueType {
+                  name
                 }
               }
             }
           }
         }
-      `, {
-                name: issuePayload.repo,
-                owner: issuePayload.owner,
-                projectNumber: projectID,
-                issueNumber: issuePayload.number,
-                fieldName,
-                endCursor,
-                headers: {
-                    "GraphQL-Features": "issue_types"
-                }
-            });
-            const projectInfo = response.repository.issue.projectV2;
-            const nodes = projectInfo.items.nodes;
-            const targetNodeID = response.repository.issue.id;
-            item = nodes.find((node) => node.content.id === targetNodeID);
-            endCursor = projectInfo.items.pageInfo.endCursor;
-        } while (response.repository.issue.projectV2.items.pageInfo.hasNextPage && !item);
+      }
+    `, {
+            projectItemID,
+            fieldName,
+            headers: {
+                "GraphQL-Features": "issue_types"
+            }
+        });
         return {
-            projectID: response.repository.issue.projectV2.id,
-            itemID: item?.id,
-            fieldText: item?.fieldValueByName?.text,
-            fieldID: response.repository.issue.projectV2.field.id,
-            issueType: response.repository.issue.issueType?.name
+            fieldText: response.node.fieldValueByName.text,
+            issueType: response.node.content.issueType.name
         };
     }
     const githubActionType = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.action;
     switch (githubActionType) {
         case "opened":
         case "edited": {
-            if (!fieldName)
-                throw new Error("A field name must be provided to search for an existing discussion thread on Discord.");
             // Get the discussion link from GitHub.
-            const projectData = await getProjectData();
-            const discussionLink = projectData?.fieldText;
+            const { fieldText: discussionLink, issueType } = await getFieldTextAndIssueType();
             const discordMessage = {
                 embeds: [
                     {
@@ -35477,7 +35448,6 @@ try {
             };
             async function getAppliedTags(channelID) {
                 const appliedTags = [];
-                const { issueType } = projectData;
                 if (issueType) {
                     const channel = await client.rest.channels.get(channelID);
                     if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {
@@ -35514,7 +35484,6 @@ try {
                 // Create a discussion link since it doesn't exist.
                 // Create a thread referencing the GitHub issue.
                 console.log("Creating Discord thread...");
-                const issueType = projectData?.issueType;
                 const appliedTags = await getAppliedTags(discordChannelID);
                 const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
                     name: issue.title,
@@ -35526,8 +35495,6 @@ try {
                 if (projectID) {
                     // Set the thread ID on the issue.
                     console.log("Updating Discord thread URL in project...");
-                    if (!projectData?.itemID)
-                        throw new Error("Couldn't get project data.");
                     await octokit.graphql(`
             mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
               updateProjectV2ItemFieldValue(
@@ -35546,9 +35513,9 @@ try {
               }
             }
           `, {
-                        projectNodeID: projectData.projectID,
-                        itemID: projectData.itemID,
-                        fieldID: projectData.fieldID,
+                        projectID,
+                        projectItemID,
+                        fieldID,
                         threadJumpLink: `https://discord.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
                     });
                 }
@@ -35560,8 +35527,7 @@ try {
         case "locked":
         case "opened":
         case "closed": {
-            const projectData = await getProjectData();
-            const discussionLink = projectData?.fieldText;
+            const { issueType, fieldText: discussionLink } = await getFieldTextAndIssueType();
             if (!discussionLink)
                 throw new Error("Discord discussion link missing.");
             const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
@@ -35580,8 +35546,7 @@ try {
             break;
         }
         case "deleted": {
-            const projectData = await getProjectData();
-            const discussionLink = projectData?.fieldText;
+            const { issueType, fieldText: discussionLink } = await getFieldTextAndIssueType();
             if (!discussionLink)
                 throw new Error("Discord discussion link missing.");
             const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;

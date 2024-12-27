@@ -22,117 +22,73 @@ try {
     repo: issuePayload.repo
   });
 
-  const fieldName = core.getInput("field-name", {required: false});
+  const fieldID = core.getInput("github-field-id", {required: true});
   const discordToken = core.getInput("discord-token", {required: true});
   const discordChannelID = core.getInput("discord-channel-id", {required: true});
-  const projectIDString = core.getInput("project-id", {required: false});
-  const projectID = parseInt(projectIDString, 10);
+  const projectItemID = core.getInput("github-project-item-id", {required: true});
+  const projectID = core.getInput("github-project-id", {required: false});
   const client = new Client({auth: `Bot ${discordToken}`});
   await client.restMode(true);
 
-  async function getProjectData() {
+  async function getFieldTextAndIssueType() {
 
-    let response;
-    let item;
-    let endCursor: string | undefined;
+    // Find the field name from the ID.
+    const { node: { name: fieldName } } = await octokit.graphql<{
+      node: {
+        name: string
+      }
+    }>(`
+      query getFieldName($fieldID: ID!) {
+        node(id: $fieldID) {
+          ... on ProjectV2Field {
+            name
+          }
+        }
+      }  
+    `);
 
-    do {
-
-      // Get the response from GitHub.
-      response = await octokit.graphql<{
-        repository: {
-          issue: {
-            id: string;
-            issueType?: {
-              name?: string
+    // Get the response from GitHub.
+    const response = await octokit.graphql<{
+      node: {
+        fieldValueByName: {
+          text?: string
+        };
+        content: {
+          issueType: {
+            name?: string
+          }
+        }
+      }
+    }>(`
+      query getProjectItem($projectItemID: ID!, $fieldName: String!) {
+        node(id: $projectItemID) {
+          ... on ProjectV2Item {
+            fieldValueByName(name: $fieldName) {
+              ... on ProjectV2ItemFieldTextValue {
+                text
+              }
             }
-            projectV2: {
-              id: string;
-              field: {
-                id: string;
-              },
-              items: {
-                nodes: {
-                  id: string,
-                  fieldValueByName?: {
-                    text: string;
-                  }
-                  content: {
-                    id: string
-                  }
-                }[];
-                pageInfo: {
-                  endCursor?: string;
-                  hasNextPage: boolean;
+            content {
+              ... on Issue {
+                issueType {
+                  name
                 }
               }
             }
           }
         }
-      }>(`
-        query getProjectItem($name: String!, $owner: String!, $projectNumber: Int!, $issueNumber: Int!, $fieldName: String!, $endCursor: String) {
-          repository(name: $name, owner: $owner) {
-            issue(number: $issueNumber) {
-              id
-              issueType {
-                name
-              }
-              projectV2(number: $projectNumber) {
-                id
-                field(name: $fieldName) {
-                  ... on ProjectV2Field {
-                    id
-                  }
-                }
-                items(first: 100, after: $endCursor) {
-                  nodes {
-                    id
-                    fieldValueByName(name: $fieldName) {
-                      ... on ProjectV2ItemFieldTextValue {
-                        text
-                      }
-                    }
-                    content {
-                      ... on Issue {
-                        id
-                      }
-                    }
-                  }
-                  pageInfo {
-                    endCursor
-                    hasNextPage
-                  }
-                }
-              }
-            }
-          }
-        }
-      `, {
-        name: issuePayload.repo,
-        owner: issuePayload.owner,
-        projectNumber: projectID,
-        issueNumber: issuePayload.number,
-        fieldName,
-        endCursor,
-        headers: {
-          "GraphQL-Features": "issue_types"
-        }
-      });
-
-      const projectInfo = response.repository.issue.projectV2;
-      const nodes = projectInfo.items.nodes;
-      const targetNodeID = response.repository.issue.id;
-      item = nodes.find((node) => node.content.id === targetNodeID);
-      endCursor = projectInfo.items.pageInfo.endCursor;
-
-    } while (response.repository.issue.projectV2.items.pageInfo.hasNextPage && !item);
+      }
+    `, {
+      projectItemID,
+      fieldName,
+      headers: {
+        "GraphQL-Features": "issue_types"
+      }
+    });
 
     return {
-      projectID: response.repository.issue.projectV2.id,
-      itemID: item?.id,
-      fieldText: item?.fieldValueByName?.text,
-      fieldID: response.repository.issue.projectV2.field.id,
-      issueType: response.repository.issue.issueType?.name
+      fieldText: response.node.fieldValueByName.text,
+      issueType: response.node.content.issueType.name
     }
 
   }
@@ -143,11 +99,8 @@ try {
     case "opened":
     case "edited": {
 
-      if (!fieldName) throw new Error("A field name must be provided to search for an existing discussion thread on Discord.");
-
       // Get the discussion link from GitHub.
-      const projectData = await getProjectData();
-      const discussionLink = projectData?.fieldText;
+      const { fieldText: discussionLink, issueType } = await getFieldTextAndIssueType();
       const discordMessage = {
         embeds: [
           {
@@ -181,7 +134,6 @@ try {
 
         const appliedTags = [];
 
-        const { issueType } = projectData;
         if (issueType) {
 
           const channel = await client.rest.channels.get(channelID);
@@ -244,7 +196,6 @@ try {
 
           // Set the thread ID on the issue.
           console.log("Updating Discord thread URL in project...");
-          if (!projectData?.itemID) throw new Error("Couldn't get project data.");
 
           await octokit.graphql(`
             mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
@@ -264,9 +215,9 @@ try {
               }
             }
           `, {
-            projectNodeID: projectData.projectID, 
-            itemID: projectData.itemID, 
-            fieldID: projectData.fieldID, 
+            projectID, 
+            projectItemID, 
+            fieldID, 
             threadJumpLink: `https://discord.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
           });
 
@@ -285,8 +236,7 @@ try {
     case "opened":
     case "closed": {
 
-      const projectData = await getProjectData();
-      const discussionLink = projectData?.fieldText;
+      const { issueType, fieldText: discussionLink } = await getFieldTextAndIssueType();
       if (!discussionLink) throw new Error("Discord discussion link missing.");
 
       const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
@@ -308,8 +258,7 @@ try {
 
     case "deleted": {
 
-      const projectData = await getProjectData();
-      const discussionLink = projectData?.fieldText;
+      const { issueType, fieldText: discussionLink } = await getFieldTextAndIssueType();
       if (!discussionLink) throw new Error("Discord discussion link missing.");
 
       const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;

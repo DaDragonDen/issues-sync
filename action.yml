@@ -2,11 +2,26 @@ name: "Issue Sync"
 author: "Christian Toney"
 description: "Sync issues between GitHub and Discord."
 inputs:
-  discord-token:
-    description: "Token of Discord bot account."
+
+  # GitHub
+  github-project-id:
+    description: "ID of project to listen to."
     required: true
+  github-project-item-id:
+    description: "ID of the item to listen to."
+    required: false
+  github-project-field-id:
+    description: "Name of field to read and adjust. Required if project-id is provided."
+    required: false
+
+  # Discord
   discord-channel-id:
     description: "ID of Discord channel to post to."
+    required: true
+
+  # Authentication
+  discord-token:
+    description: "Token of Discord bot account."
     required: true
   github-app-id:
     description: "ID of GitHub App to authenticate as. If you don't have a GitHub app yet, create one."
@@ -17,12 +32,7 @@ inputs:
   github-app-installation-id:
     description: "The installation ID of the GitHub app. You can get this from checking the URL after hitting configure at https://github.com/{USER or ORGANIZATION}/{REPOSITORY}/settings/installations."
     required: true
-  project-id:
-    description: "ID of project to listen to."
-    required: false
-  field-name:
-    description: "Name of field to read and adjust. Required if project-id is provided."
-    required: false
+
 runs:
   using: "node20"
   main: "dist/index.js"
