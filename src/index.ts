@@ -98,7 +98,7 @@ try {
   const githubActionType = github.context.payload.action;
 
   const { fieldText: discussionLink, issueType } = await getFieldTextAndIssueType();
-  const discordUserMap = core.getInput("discord-user-map", {required: false})?.split("\n").map((row) => row.replaceAll("\n", "").split("="));
+  const discordUserMap = core.getInput("discord-user-map", {required: false})?.split("\n").map((row) => row.split("="));
   const discordMessage = {
     embeds: [
       {
@@ -129,7 +129,7 @@ try {
               value: issue.assignees.map((assignee, index) => {
 
                 const connection = discordUserMap?.find((pair) => parseInt(pair[0], 10) === assignee.id);
-                const discordUserID = connection?.[1];
+                const discordUserID = parseInt(connection?.[1] ?? "", 10);
                 return `${discordUserID ? `<@${discordUserID}>` : `[@${assignee.login}](${assignee.html_url})`}${issue.assignees?.[index + 1] ? "\n" : ""}`
 
               }).join()
