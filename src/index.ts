@@ -88,6 +88,10 @@ try {
       }
     });
 
+    console.log(fieldName);
+    console.log("---");
+    console.log(projectItemID);
+
     return {
       fieldText: response.node.fieldValueByName?.text,
       issueType: response.node.content.issueType?.name
