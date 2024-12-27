@@ -35415,61 +35415,99 @@ try {
         };
     }
     const githubActionType = _actions_github__WEBPACK_IMPORTED_MODULE_2__.context.payload.action;
-    switch (githubActionType) {
-        case "opened":
-        case "edited": {
-            // Get the discussion link from GitHub.
-            const { fieldText: discussionLink, issueType } = await getFieldTextAndIssueType();
-            const discordMessage = {
-                embeds: [
+    const { fieldText: discussionLink, issueType } = await getFieldTextAndIssueType();
+    const discordMessage = {
+        embeds: [
+            {
+                ...issue.user?.login ? {
+                    author: {
+                        name: `${issue.user.name ? `${issue.user.name} (` : ""}${issue.user.login}${issue.user.name ? ")" : ""}`,
+                        url: issue.user.html_url,
+                        iconURL: issue.user.avatar_url
+                    }
+                } : {},
+                title: issue.title,
+                url: issue.html_url,
+                ...issue.body ? {
+                    description: issue.body
+                } : {},
+                fields: [
                     {
-                        ...issue.user?.login ? {
-                            author: {
-                                name: `${issue.user.name ? `${issue.user.name} (` : ""}${issue.user.login}${issue.user.name ? ")" : ""}`,
-                                url: issue.user.html_url,
-                                iconURL: issue.user.avatar_url
-                            }
-                        } : {},
-                        title: issue.title,
-                        url: issue.html_url,
-                        ...issue.body ? {
-                            description: issue.body
-                        } : {},
-                        fields: [
-                            {
-                                name: "Repository",
-                                value: `[${issuePayload.owner}/${issuePayload.repo}](https://github.com/${issuePayload.owner}/${issuePayload.repo})`
-                            },
-                            {
-                                name: "Issue",
-                                value: `${issue.number}`,
-                            }
-                        ]
+                        name: "Repository",
+                        value: `[${issuePayload.owner}/${issuePayload.repo}](https://github.com/${issuePayload.owner}/${issuePayload.repo})`
+                    },
+                    {
+                        name: "Issue",
+                        value: `${issue.number}`,
                     }
                 ]
-            };
-            async function getAppliedTags(channelID) {
-                const appliedTags = [];
-                if (issueType) {
-                    const channel = await client.rest.channels.get(channelID);
-                    if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {
-                        const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
-                        if (tag)
-                            appliedTags.push(tag.id);
-                    }
-                }
-                return appliedTags;
             }
-            if (discussionLink) {
+        ]
+    };
+    async function getAppliedTags(channelID) {
+        const appliedTags = [];
+        if (issueType) {
+            const channel = await client.rest.channels.get(channelID);
+            if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {
+                const tag = channel.availableTags.find((tag) => tag.name.toLowerCase() === issueType.toLowerCase());
+                if (tag)
+                    appliedTags.push(tag.id);
+            }
+        }
+        return appliedTags;
+    }
+    async function createDiscordThread() {
+        // Create a discussion link since it doesn't exist.
+        // Create a thread referencing the GitHub issue.
+        console.log("Creating Discord thread...");
+        const appliedTags = await getAppliedTags(discordChannelID);
+        const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
+            name: issue.title,
+            message: discordMessage,
+            appliedTags
+        });
+        const threadMessageID = thread.lastMessageID;
+        // Set the thread ID on the issue.
+        console.log("Updating Discord thread URL in project...");
+        await octokit.graphql(`
+      mutation setItemFields($projectID: ID!, $projectItemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
+        updateProjectV2ItemFieldValue(
+          input: {
+            projectId: $projectID
+            itemId: $projectItemID
+            fieldId: $fieldID
+            value: {
+              text: $threadJumpLink
+            }
+          }
+        ) {
+          projectV2Item {
+            id
+          }  
+        }
+      }
+    `, {
+            projectID,
+            projectItemID,
+            fieldID,
+            threadJumpLink: `https://discord.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
+        });
+    }
+    if (discussionLink) {
+        const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
+        const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
+        const channelID = discordThreadIDMatch[0]?.groups?.channelID;
+        const messageID = discordThreadIDMatch[0]?.groups?.messageID;
+        if (!channelID)
+            throw new Error("Channel ID not provided in link.");
+        if (!messageID)
+            throw new Error("Thread ID not provided in link.");
+        // Edit the existing message.
+        await client.rest.channels.editMessage(channelID, messageID, discordMessage);
+        switch (githubActionType) {
+            case "opened":
+            case "edited": {
                 // Verify the link is set up correctly.
-                const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
-                const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
-                const channelID = discordThreadIDMatch[0]?.groups?.channelID;
-                const messageID = discordThreadIDMatch[0]?.groups?.messageID;
-                if (!channelID)
-                    throw new Error("Channel ID not provided in link.");
-                if (!messageID)
-                    throw new Error("Thread ID not provided in link.");
                 const thread = await client.rest.channels.get(channelID);
                 // Edit the thread name if necessary.
                 if (thread.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.PUBLIC_THREAD || thread.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.PRIVATE_THREAD) {
@@ -35479,88 +35517,32 @@ try {
                         appliedTags
                     });
                 }
-                // Edit the existing message.
-                await client.rest.channels.editMessage(channelID, messageID, discordMessage);
-            }
-            else {
-                // Create a discussion link since it doesn't exist.
-                // Create a thread referencing the GitHub issue.
-                console.log("Creating Discord thread...");
-                const appliedTags = await getAppliedTags(discordChannelID);
-                const thread = await client.rest.channels.startThreadInThreadOnlyChannel(discordChannelID, {
-                    name: issue.title,
-                    message: discordMessage,
-                    appliedTags
-                });
-                const threadMessageID = thread.lastMessageID;
-                // Find the project item ID.
-                if (projectID) {
-                    // Set the thread ID on the issue.
-                    console.log("Updating Discord thread URL in project...");
-                    await octokit.graphql(`
-            mutation setItemFields($projectID: ID!, $projectItemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
-              updateProjectV2ItemFieldValue(
-                input: {
-                  projectId: $projectID
-                  itemId: $projectItemID
-                  fieldId: $fieldID
-                  value: {
-                    text: $threadJumpLink
-                  }
-                }
-              ) {
-                projectV2Item {
-                  id
-                }  
-              }
-            }
-          `, {
-                        projectID,
-                        projectItemID,
-                        fieldID,
-                        threadJumpLink: `https://discord.com/channels/${thread.guildID}/${thread.id}/${threadMessageID}`
-                    });
-                }
                 break;
             }
-            break;
+            case "unlocked":
+            case "locked":
+            case "opened":
+            case "closed": {
+                await client.rest.channels.edit(channelID, {
+                    ...githubActionType === "closed" || githubActionType === "opened" ? {
+                        archived: githubActionType === "closed"
+                    } : {},
+                    ...githubActionType === "locked" || githubActionType === "unlocked" ? {
+                        locked: githubActionType === "locked"
+                    } : {}
+                });
+                break;
+            }
+            case "deleted": {
+                await client.rest.channels.delete(channelID, "Issue deleted.");
+                break;
+            }
+            default:
+                break;
         }
-        case "unlocked":
-        case "locked":
-        case "opened":
-        case "closed": {
-            const { issueType, fieldText: discussionLink } = await getFieldTextAndIssueType();
-            if (!discussionLink)
-                throw new Error("Discord discussion link missing.");
-            const discordLinkRegex = /discord(app)?\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
-            const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
-            const channelID = discordThreadIDMatch[0]?.groups?.channelID;
-            if (!channelID)
-                throw new Error("Channel ID not provided in link.");
-            await client.rest.channels.edit(channelID, {
-                ...githubActionType === "closed" || githubActionType === "opened" ? {
-                    archived: githubActionType === "closed"
-                } : {},
-                ...githubActionType === "locked" || githubActionType === "unlocked" ? {
-                    locked: githubActionType === "locked"
-                } : {}
-            });
-            break;
-        }
-        case "deleted": {
-            const { issueType, fieldText: discussionLink } = await getFieldTextAndIssueType();
-            if (!discussionLink)
-                throw new Error("Discord discussion link missing.");
-            const discordLinkRegex = /discordapp\.com\/channels\/\d+\/(?<channelID>\d+)\/(?<messageID>\d+)/g;
-            const discordThreadIDMatch = [...discussionLink.matchAll(discordLinkRegex)];
-            const channelID = discordThreadIDMatch[0].groups?.channelID;
-            if (!channelID)
-                throw new Error("Channel ID not provided in link.");
-            await client.rest.channels.delete(channelID, "Issue deleted.");
-            break;
-        }
-        default:
-            break;
+    }
+    else {
+        await createDiscordThread();
     }
 }
 catch (error) {
