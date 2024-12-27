@@ -35366,7 +35366,6 @@ try {
     const discordToken = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-token", { required: true });
     const discordChannelID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("discord-channel-id", { required: true });
     const projectItemID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-project-item-id", { required: true });
-    console.log(projectItemID);
     const projectID = _actions_core__WEBPACK_IMPORTED_MODULE_1__.getInput("github-project-id", { required: false });
     const client = new oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .Client */ .Kje({ auth: `Bot ${discordToken}` });
     await client.restMode(true);
@@ -35410,7 +35409,6 @@ try {
                 "GraphQL-Features": "issue_types"
             }
         });
-        console.log(response);
         return {
             fieldText: response.node.fieldValueByName?.text,
             issueType: response.node.content.issueType?.name

@@ -26,7 +26,6 @@ try {
   const discordToken = core.getInput("discord-token", {required: true});
   const discordChannelID = core.getInput("discord-channel-id", {required: true});
   const projectItemID = core.getInput("github-project-item-id", {required: true});
-  console.log(projectItemID);
   const projectID = core.getInput("github-project-id", {required: false});
   const client = new Client({auth: `Bot ${discordToken}`});
   await client.restMode(true);
@@ -88,8 +87,6 @@ try {
         "GraphQL-Features": "issue_types"
       }
     });
-
-    console.log(response);
 
     return {
       fieldText: response.node.fieldValueByName?.text,
