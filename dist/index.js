@@ -35409,9 +35409,6 @@ try {
                 "GraphQL-Features": "issue_types"
             }
         });
-        console.log(fieldName);
-        console.log("---");
-        console.log(projectItemID);
         return {
             fieldText: response.node.fieldValueByName?.text,
             issueType: response.node.content.issueType?.name
@@ -35461,8 +35458,12 @@ try {
             users: true
         }
     };
+    console.log(discussionLink);
+    console.log(issueType);
     async function getAppliedTags(channelID) {
         const appliedTags = [];
+        console.log(discussionLink);
+        console.log(issueType);
         if (issueType) {
             const channel = await client.rest.channels.get(channelID);
             if (channel?.type === oceanic_js__WEBPACK_IMPORTED_MODULE_0__/* .ChannelTypes */ .rbe.GUILD_FORUM) {

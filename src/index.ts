@@ -88,10 +88,6 @@ try {
       }
     });
 
-    console.log(fieldName);
-    console.log("---");
-    console.log(projectItemID);
-
     return {
       fieldText: response.node.fieldValueByName?.text,
       issueType: response.node.content.issueType?.name
@@ -146,10 +142,14 @@ try {
       users: true
     }
   };
+  console.log(discussionLink);
+  console.log(issueType);
 
   async function getAppliedTags(channelID: string) {
 
     const appliedTags = [];
+    console.log(discussionLink);
+    console.log(issueType)
 
     if (issueType) {
 
