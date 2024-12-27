@@ -125,7 +125,7 @@ try {
           },
           ... issue.assignees?.[0] ? [
             {
-              name: "Assignees",
+              name: `Assignee${issue.assignees.length > 1 ? "s" : ""}`,
               value: issue.assignees.map((assignee, index) => {
 
                 const connection = discordUserMap?.find((pair) => parseInt(pair[0], 10) === assignee.id);
