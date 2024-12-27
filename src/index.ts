@@ -45,7 +45,9 @@ try {
           }
         }
       }  
-    `);
+    `, {
+      fieldID
+    });
 
     // Get the response from GitHub.
     const response = await octokit.graphql<{

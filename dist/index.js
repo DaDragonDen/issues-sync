@@ -35379,7 +35379,9 @@ try {
           }
         }
       }  
-    `);
+    `, {
+            fieldID
+        });
         // Get the response from GitHub.
         const response = await octokit.graphql(`
       query getProjectItem($projectItemID: ID!, $fieldName: String!) {
