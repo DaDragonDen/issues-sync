@@ -35498,11 +35498,11 @@ try {
                     // Set the thread ID on the issue.
                     console.log("Updating Discord thread URL in project...");
                     await octokit.graphql(`
-            mutation setItemFields($projectNodeID: ID!, $itemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
+            mutation setItemFields($projectID: ID!, $projectItemID: ID!, $fieldID: ID!, $threadJumpLink: String!) {
               updateProjectV2ItemFieldValue(
                 input: {
-                  projectId: $projectNodeID
-                  itemId: $itemID
+                  projectId: $projectID
+                  itemId: $projectItemID
                   fieldId: $fieldID
                   value: {
                     text: $threadJumpLink
