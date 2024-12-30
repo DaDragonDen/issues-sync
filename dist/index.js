@@ -35543,7 +35543,8 @@ try {
                     } : {},
                     ...githubActionType === "locked" || githubActionType === "unlocked" ? {
                         locked: githubActionType === "locked"
-                    } : {}
+                    } : {},
+                    appliedTags: await getAppliedTags(channelID)
                 });
                 break;
             }

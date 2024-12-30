@@ -216,7 +216,7 @@ try {
     const messageID = discordThreadIDMatch[0]?.groups?.messageID;
     if (!channelID) throw new Error("Channel ID not provided in link.");
     if (!messageID) throw new Error("Thread ID not provided in link.");
-  
+
     // Edit the existing message.
     await client.rest.channels.editMessage(channelID, messageID, discordMessage);
 
@@ -254,7 +254,8 @@ try {
           } : {},
           ... githubActionType === "locked" || githubActionType === "unlocked" ? {
             locked: githubActionType === "locked"
-          } : {}
+          } : {},
+          appliedTags: await getAppliedTags(channelID)
         });
 
         break;
