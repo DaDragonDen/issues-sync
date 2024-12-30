@@ -218,7 +218,10 @@ try {
     if (!messageID) throw new Error("Thread ID not provided in link.");
 
     // Edit the existing message.
-    await client.rest.channels.editMessage(channelID, messageID, discordMessage);
+    const thread = await client.rest.channels.get(channelID);
+    if (thread.type !== ChannelTypes.PUBLIC_THREAD && thread.type !== ChannelTypes.PRIVATE_THREAD) throw new Error("Channel ID does not lead to a thread.");
+
+    await thread.editMessage(messageID, discordMessage);
 
     switch (githubActionType) {
 
@@ -228,21 +231,14 @@ try {
       case "opened":
       case "edited": {
 
-        // Verify the link is set up correctly.
-        const thread = await client.rest.channels.get(channelID);
-
-        // Edit the thread name if necessary.
-        if (thread.type === ChannelTypes.PUBLIC_THREAD || thread.type === ChannelTypes.PRIVATE_THREAD) {
-
-          const appliedTags = await getAppliedTags(thread.parentID);
-          await thread.edit({
-            name: issue.title,
-            appliedTags,
-            archived: !!issue.closed_at,
-            locked: issue.locked
-          });
-
-        }
+        const appliedTags = await getAppliedTags(thread.parentID);
+        
+        await thread.edit({
+          name: issue.title,
+          appliedTags,
+          archived: !!issue.closed_at,
+          locked: issue.locked
+        });
         
         break;
 
@@ -250,7 +246,7 @@ try {
 
       case "deleted": {
         
-        await client.rest.channels.delete(channelID, "Issue deleted.");
+        await thread.delete();
         break;
 
       }
