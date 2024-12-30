@@ -35519,6 +35519,9 @@ try {
         // Edit the existing message.
         await client.rest.channels.editMessage(channelID, messageID, discordMessage);
         switch (githubActionType) {
+            case "unlocked":
+            case "locked":
+            case "closed":
             case "opened":
             case "edited": {
                 // Verify the link is set up correctly.
@@ -35528,20 +35531,11 @@ try {
                     const appliedTags = await getAppliedTags(thread.parentID);
                     await thread.edit({
                         name: issue.title,
-                        appliedTags
+                        appliedTags,
+                        archived: !!issue.closed_at,
+                        locked: issue.locked
                     });
                 }
-                break;
-            }
-            case "unlocked":
-            case "locked":
-            case "opened":
-            case "closed": {
-                await client.rest.channels.edit(channelID, {
-                    archived: !!issue.closed_at,
-                    locked: issue.locked,
-                    appliedTags: await getAppliedTags(channelID)
-                });
                 break;
             }
             case "deleted": {
