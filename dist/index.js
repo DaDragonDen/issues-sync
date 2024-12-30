@@ -35538,12 +35538,8 @@ try {
             case "opened":
             case "closed": {
                 await client.rest.channels.edit(channelID, {
-                    ...githubActionType === "closed" || githubActionType === "opened" ? {
-                        archived: githubActionType === "closed"
-                    } : {},
-                    ...githubActionType === "locked" || githubActionType === "unlocked" ? {
-                        locked: githubActionType === "locked"
-                    } : {},
+                    archived: !!issue.closed_at,
+                    locked: issue.locked,
                     appliedTags: await getAppliedTags(channelID)
                 });
                 break;
